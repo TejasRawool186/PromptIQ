@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   ChevronLeft,
+  LogOut,
   LucideIcon,
 } from "lucide-react";
 
@@ -38,6 +39,20 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const [user, setUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          console.error("Failed to parse user session", e);
+        }
+      }
+    }
+  }, []);
 
   return (
     <aside
@@ -134,6 +149,59 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
         </div>
       </div>
+
+      {/* User Session Profile Box */}
+      {user && (
+        <div className={cn("border-t border-[rgba(139,92,246,0.08)] p-4 flex flex-col gap-3", collapsed ? "items-center justify-center p-2" : "")}>
+          <div className="flex items-center gap-3">
+            {user.picture ? (
+              <img
+                src={user.picture}
+                alt={user.name || "User Profile"}
+                className="w-9 h-9 rounded-full border border-white/10"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                {(user.name || user.email || "U").charAt(0).toUpperCase()}
+              </div>
+            )}
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-white truncate">
+                  {user.name || "Developer"}
+                </p>
+                <p className="text-[10px] text-[var(--text-muted)] truncate">
+                  {user.email}
+                </p>
+              </div>
+            )}
+          </div>
+          {!collapsed ? (
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.href = "/";
+              }}
+              className="w-full py-1.5 px-3 rounded-lg text-xs font-medium border border-white/5 bg-white/5 text-slate-300 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all text-center cursor-pointer"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.href = "/";
+              }}
+              className="w-9 h-9 rounded-full border border-white/5 bg-white/5 text-slate-400 hover:bg-red-500/10 hover:text-red-400 flex items-center justify-center transition-all mt-1 cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Collapse Button */}
       <button

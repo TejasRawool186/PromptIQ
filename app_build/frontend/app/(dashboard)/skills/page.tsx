@@ -11,6 +11,7 @@ import {
   BookOpen,
   ArrowUpRight,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import {
   LineChart,
@@ -21,114 +22,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-// ============================================================
-// Fallback Mock Data for Developers
-// ============================================================
-
-const DEVELOPERS = [
-  {
-    id: "dev1",
-    name: "Alice Chen",
-    role: "Senior Full-Stack Engineer",
-    avatar: "AC",
-    skills: [
-      { domain: "frontend" as const, score: 92 },
-      { domain: "backend" as const, score: 85 },
-      { domain: "database" as const, score: 78 },
-      { domain: "devops" as const, score: 65 },
-      { domain: "testing" as const, score: 88 },
-      { domain: "security" as const, score: 70 },
-      { domain: "ml_ai" as const, score: 60 },
-    ],
-    timeline: [
-      { month: "Jan", frontend: 80, backend: 75, devops: 50 },
-      { month: "Feb", frontend: 82, backend: 76, devops: 52 },
-      { month: "Mar", frontend: 85, backend: 78, devops: 55 },
-      { month: "Apr", frontend: 88, backend: 80, devops: 60 },
-      { month: "May", frontend: 90, backend: 83, devops: 62 },
-      { month: "Jun", frontend: 92, backend: 85, devops: 65 },
-    ],
-    aiDependency: [
-      { week: "Wk 1", dependency: 78, prompts: 42 },
-      { week: "Wk 2", dependency: 70, prompts: 38 },
-      { week: "Wk 3", dependency: 64, prompts: 35 },
-      { week: "Wk 4", dependency: 55, prompts: 28 },
-      { week: "Wk 5", dependency: 48, prompts: 22 },
-      { week: "Wk 6", dependency: 45, prompts: 20 },
-    ],
-    recommendations: [
-      {
-        id: "r1",
-        title: "Docker container security best practices",
-        type: "Article",
-        domain: "security",
-        time: "15 min read",
-      },
-      {
-        id: "r2",
-        title: "Advanced AWS CloudFormation templates",
-        type: "Course",
-        domain: "devops",
-        time: "2h video",
-      },
-      {
-        id: "r3",
-        title: "Vector Embeddings & Graph DB design",
-        type: "Tutorial",
-        domain: "ml_ai",
-        time: "30 min",
-      },
-    ],
-  },
-  {
-    id: "dev2",
-    name: "Bob Kumar",
-    role: "Backend & Data Architect",
-    avatar: "BK",
-    skills: [
-      { domain: "frontend" as const, score: 45 },
-      { domain: "backend" as const, score: 95 },
-      { domain: "database" as const, score: 94 },
-      { domain: "devops" as const, score: 88 },
-      { domain: "testing" as const, score: 80 },
-      { domain: "security" as const, score: 85 },
-      { domain: "ml_ai" as const, score: 75 },
-    ],
-    timeline: [
-      { month: "Jan", frontend: 40, backend: 90, devops: 80 },
-      { month: "Feb", frontend: 40, backend: 91, devops: 82 },
-      { month: "Mar", frontend: 42, backend: 92, devops: 83 },
-      { month: "Apr", frontend: 45, backend: 93, devops: 85 },
-      { month: "May", frontend: 45, backend: 94, devops: 86 },
-      { month: "Jun", frontend: 45, backend: 95, devops: 88 },
-    ],
-    aiDependency: [
-      { week: "Wk 1", dependency: 35, prompts: 18 },
-      { week: "Wk 2", dependency: 38, prompts: 20 },
-      { week: "Wk 3", dependency: 40, prompts: 22 },
-      { week: "Wk 4", dependency: 30, prompts: 15 },
-      { week: "Wk 5", dependency: 25, prompts: 10 },
-      { week: "Wk 6", dependency: 22, prompts: 8 },
-    ],
-    recommendations: [
-      {
-        id: "r4",
-        title: "Next.js App Router Server Actions",
-        type: "Tutorial",
-        domain: "frontend",
-        time: "20 min read",
-      },
-      {
-        id: "r5",
-        title: "React components styling with Tailwind",
-        type: "Course",
-        domain: "frontend",
-        time: "1h video",
-      },
-    ],
-  },
-];
 
 const DOMAIN_DETAILS: Record<
   string,
@@ -172,19 +65,33 @@ const DOMAIN_DETAILS: Record<
 };
 
 export default function SkillsPage() {
-  const [selectedDevId, setSelectedDevId] = useState("dev1");
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [timeline, setTimeline] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("user");
+      if (saved) {
+        try {
+          setCurrentUser(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse user session", e);
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
     let active = true;
     async function loadSkills() {
       setLoading(true);
       try {
         const { api } = await import("@/lib/api");
-        const skillProfile = await api.getSkillProfile(selectedDevId);
-        const skillTimeline = await api.getSkillTimeline(selectedDevId);
+        const skillProfile = await api.getSkillProfile(currentUser.id);
+        const skillTimeline = await api.getSkillTimeline(currentUser.id);
         if (active) {
           setProfile(skillProfile);
           setTimeline(skillTimeline);
@@ -199,98 +106,97 @@ export default function SkillsPage() {
     return () => {
       active = false;
     };
-  }, [selectedDevId]);
+  }, [currentUser]);
 
-  const devMock = DEVELOPERS.find((d) => d.id === selectedDevId) || DEVELOPERS[0];
+  const defaultDomains = [
+    { domain: "frontend" as const, score: 0 },
+    { domain: "backend" as const, score: 0 },
+    { domain: "database" as const, score: 0 },
+    { domain: "devops" as const, score: 0 },
+    { domain: "testing" as const, score: 0 },
+    { domain: "security" as const, score: 0 },
+    { domain: "ml_ai" as const, score: 0 },
+  ];
+
   const hasData = profile && profile.total_prompts > 0;
 
   const displaySkills = hasData
     ? profile.skills
-    : devMock.skills;
+    : defaultDomains;
 
   const displayTimeline = timeline && timeline.timeline && timeline.timeline.length > 0
     ? timeline.timeline.map((t: any, i: number) => ({
         month: t.date || `Step ${i + 1}`,
-        frontend: t.skills.frontend || 50,
-        backend: t.skills.backend || 50,
-        devops: t.skills.devops || 50,
+        frontend: t.skills.frontend || 0,
+        backend: t.skills.backend || 0,
+        devops: t.skills.devops || 0,
       }))
-    : devMock.timeline;
+    : [
+        { month: "Point A", frontend: 0, backend: 0, devops: 0 },
+        { month: "Point B", frontend: 0, backend: 0, devops: 0 },
+        { month: "Point C", frontend: 0, backend: 0, devops: 0 },
+      ];
 
   const displayAIDependency = hasData
     ? [
-        { week: "Wk 1", dependency: Math.round(profile.ai_dependency_score * 1.2), prompts: Math.round(profile.total_prompts * 0.2) },
-        { week: "Wk 2", dependency: Math.round(profile.ai_dependency_score * 1.1), prompts: Math.round(profile.total_prompts * 0.25) },
-        { week: "Wk 3", dependency: Math.round(profile.ai_dependency_score), prompts: Math.round(profile.total_prompts * 0.15) }
+        { week: "Wk 1", dependency: Math.round(profile.ai_dependency_score * 0.8), prompts: Math.round(profile.total_prompts * 0.2) },
+        { week: "Wk 2", dependency: Math.round(profile.ai_dependency_score * 0.9), prompts: Math.round(profile.total_prompts * 0.3) },
+        { week: "Wk 3", dependency: Math.round(profile.ai_dependency_score), prompts: Math.round(profile.total_prompts * 0.5) }
       ]
-    : devMock.aiDependency;
+    : [
+        { week: "Wk 1", dependency: 0, prompts: 0 },
+        { week: "Wk 2", dependency: 0, prompts: 0 },
+        { week: "Wk 3", dependency: 0, prompts: 0 }
+      ];
 
-  const avgSkillScore = Math.round(
-    displaySkills.reduce((acc: number, s: any) => acc + (s.score || s.level || 0), 0) /
-      displaySkills.length
-  );
+  const avgSkillScore = hasData && displaySkills.length > 0
+    ? Math.round(
+        displaySkills.reduce((acc: number, s: any) => acc + (s.score || s.level || 0), 0) /
+          displaySkills.length
+      )
+    : 0;
 
   const currentDependency = hasData
     ? Math.round(profile.ai_dependency_score)
-    : devMock.aiDependency[devMock.aiDependency.length - 1].dependency;
+    : 0;
 
   const currentPrompts = hasData
     ? profile.total_prompts
-    : devMock.aiDependency[devMock.aiDependency.length - 1].prompts;
+    : 0;
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Skill Tracking & AI Dependency
-          </h1>
-          <p className="text-[var(--text-secondary)]">
-            Analyze developer skill growth and track AI dependency trends using Cognee memory.
-          </p>
-        </div>
-
-        {/* Developer Selector */}
-        <div className="flex items-center gap-3 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-2xl p-1.5 backdrop-blur-md">
-          {DEVELOPERS.map((dev) => (
-            <button
-              key={dev.id}
-              onClick={() => setSelectedDevId(dev.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedDevId === dev.id
-                  ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20"
-                  : "text-[var(--text-secondary)] hover:text-white hover:bg-white/[0.02]"
-              }`}
-            >
-              <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                  selectedDevId === dev.id
-                    ? "bg-white/20 text-white"
-                    : "bg-brand-500/20 text-brand-400"
-                }`}
-              >
-                {dev.avatar}
-              </div>
-              {dev.name.split(" ")[0]}
-            </button>
-          ))}
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">
+          Skill Tracking & AI Dependency
+        </h1>
+        <p className="text-[var(--text-secondary)]">
+          Analyze your skill growth and track AI dependency trends dynamically based on Cognee memory.
+        </p>
       </div>
 
-      {/* Developer Profile Overview Card */}
+      {/* Profile Overview Card */}
       <div className="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent-cyan flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-brand-500/10">
-            {devMock.avatar}
-          </div>
+          {currentUser?.picture ? (
+            <img
+              src={currentUser.picture}
+              alt={currentUser.name || "User Avatar"}
+              className="w-16 h-16 rounded-2xl border border-white/10 shadow-xl"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-accent-cyan flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-brand-500/10">
+              {(currentUser?.name || "D").charAt(0).toUpperCase()}
+            </div>
+          )}
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
-              {devMock.name}
+              {currentUser?.name || "Developer Workspace"}
               {loading && <Loader2 className="w-4 h-4 animate-spin text-brand-400" />}
             </h2>
             <p className="text-sm text-[var(--text-secondary)]">
-              {devMock.role}
+              {currentUser?.email || "Connected Active Workspace"}
             </p>
           </div>
         </div>
@@ -316,7 +222,7 @@ export default function SkillsPage() {
           <div className="w-px h-10 bg-[rgba(255,255,255,0.08)] hidden md:block" />
           <div>
             <div className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wider mb-1">
-              Total Ingested Prompts
+              Ingested Prompts
             </div>
             <div className="text-3xl font-bold text-accent-emerald">
               {currentPrompts}
@@ -325,15 +231,35 @@ export default function SkillsPage() {
         </div>
       </div>
 
+      {/* Empty State Warning */}
+      {!hasData && !loading && (
+        <div className="glass p-6 rounded-2xl border border-[rgba(239,68,68,0.15)] bg-red-500/[0.02] flex items-start gap-4">
+          <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="text-sm font-semibold text-red-300">No Prompt Telemetry Detected</h4>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Your competency map is empty because you haven't logged any prompts to the database. Submit prompts in the 
+              <strong> Quick Prompt Analysis</strong> panel on your dashboard to see your AI dependency scores and skill coverage update!
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Skill Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Skill Radar Chart (Glass) */}
+        {/* Skill Radar Chart */}
         <div className="lg:col-span-5 glass-card p-6 flex flex-col">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
             <Brain className="w-5 h-5 text-brand-400" /> Skill Domain Radar
           </h3>
           <div className="h-[300px] w-full flex-1 flex items-center justify-center">
-            <SkillRadar data={displaySkills} />
+            {hasData ? (
+              <SkillRadar data={displaySkills} />
+            ) : (
+              <div className="text-xs text-[var(--text-muted)] text-center">
+                Radar requires active prompt data to compute coordinates.
+              </div>
+            )}
           </div>
         </div>
 
@@ -396,64 +322,70 @@ export default function SkillsPage() {
             <TrendingUp className="w-5 h-5 text-brand-400" /> Skill Growth Timeline
           </h3>
           <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={displayTimeline}
-                margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(139,92,246,0.08)"
-                />
-                <XAxis
-                  dataKey="month"
-                  stroke="#6b6480"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#6b6480"
-                  fontSize={12}
-                  domain={[30, 100]}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "rgba(15,10,35,0.95)",
-                    border: "1px solid rgba(139,92,246,0.2)",
-                    borderRadius: "12px",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                  }}
-                  labelStyle={{ color: "#a8a3b8" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="frontend"
-                  name="Frontend"
-                  stroke="#8B5CF6"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="backend"
-                  name="Backend"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="devops"
-                  name="DevOps"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={displayTimeline}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(139,92,246,0.08)"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    stroke="#6b6480"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#6b6480"
+                    fontSize={12}
+                    domain={[0, 100]}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(15,10,35,0.95)",
+                      border: "1px solid rgba(139,92,246,0.2)",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                    }}
+                    labelStyle={{ color: "#a8a3b8" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="frontend"
+                    name="Frontend"
+                    stroke="#8B5CF6"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="backend"
+                    name="Backend"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="devops"
+                    name="DevOps"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs text-[var(--text-muted)] border border-dashed border-white/5 rounded-xl">
+                Charts will populate as skill nodes build up in Cognee memory.
+              </div>
+            )}
           </div>
         </div>
 
@@ -463,56 +395,62 @@ export default function SkillsPage() {
             <Cpu className="w-5 h-5 text-accent-cyan" /> AI Dependency Trend
           </h3>
           <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={displayAIDependency}
-                margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(139,92,246,0.08)"
-                />
-                <XAxis
-                  dataKey="week"
-                  stroke="#6b6480"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#6b6480"
-                  fontSize={12}
-                  domain={[0, 100]}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "rgba(15,10,35,0.95)",
-                    border: "1px solid rgba(139,92,246,0.2)",
-                    borderRadius: "12px",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                  }}
-                  labelStyle={{ color: "#a8a3b8" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="dependency"
-                  name="Dependency %"
-                  stroke="#ef4444"
-                  strokeWidth={2.5}
-                  dot={{ fill: "#ef4444", r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="prompts"
-                  name="Weekly Prompts"
-                  stroke="#8B5CF6"
-                  strokeWidth={2}
-                  dot={{ fill: "#8B5CF6", r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={displayAIDependency}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(139,92,246,0.08)"
+                  />
+                  <XAxis
+                    dataKey="week"
+                    stroke="#6b6480"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#6b6480"
+                    fontSize={12}
+                    domain={[0, 100]}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(15,10,35,0.95)",
+                      border: "1px solid rgba(139,92,246,0.2)",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                    }}
+                    labelStyle={{ color: "#a8a3b8" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dependency"
+                    name="Dependency %"
+                    stroke="#ef4444"
+                    strokeWidth={2.5}
+                    dot={{ fill: "#ef4444", r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="prompts"
+                    name="Weekly Prompts"
+                    stroke="#8B5CF6"
+                    strokeWidth={2}
+                    dot={{ fill: "#8B5CF6", r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs text-[var(--text-muted)] border border-dashed border-white/5 rounded-xl">
+                Charts will populate as dependency trends calculate.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -522,52 +460,58 @@ export default function SkillsPage() {
         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-brand-400" /> Cognee-Powered Learning Recommendations
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {devMock.recommendations.map((rec) => {
-            const details = DOMAIN_DETAILS[rec.domain] || {
-              label: rec.domain,
-              color: "#8B5CF6",
-            };
-            return (
-              <div
-                key={rec.id}
-                className="bg-white/[0.015] border border-[rgba(255,255,255,0.04)] rounded-xl p-5 hover:bg-white/[0.03] transition-all hover:-translate-y-1 duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
-                      style={{
-                        backgroundColor: `${details.color}15`,
-                        color: details.color,
-                      }}
-                    >
-                      {details.label.split(" ")[0]}
-                    </span>
-                    <span className="text-[11px] text-[var(--text-muted)] font-medium">
-                      {rec.type}
-                    </span>
+        {!hasData ? (
+          <div className="text-center py-8 text-xs text-[var(--text-muted)] border border-dashed border-[rgba(255,255,255,0.05)] rounded-xl bg-white/[0.005]">
+            Add prompt data to receive personalized skill refinement recommendations from Cognee.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(profile?.recommendations || []).map((rec: any) => {
+              const details = DOMAIN_DETAILS[rec.domain] || {
+                label: rec.domain,
+                color: "#8B5CF6",
+              };
+              return (
+                <div
+                  key={rec.id}
+                  className="bg-white/[0.015] border border-[rgba(255,255,255,0.04)] rounded-xl p-5 hover:bg-white/[0.03] transition-all hover:-translate-y-1 duration-300 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span
+                        className="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                        style={{
+                          backgroundColor: `${details.color}15`,
+                          color: details.color,
+                        }}
+                      >
+                        {details.label.split(" ")[0]}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)] font-medium">
+                        {rec.type}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-bold leading-snug mb-2 text-[var(--text-primary)]">
+                      {rec.title}
+                    </h4>
                   </div>
-                  <h4 className="text-sm font-bold leading-snug mb-2 text-[var(--text-primary)]">
-                    {rec.title}
-                  </h4>
+                  <div className="flex items-center justify-between mt-4 border-t border-[rgba(255,255,255,0.05)] pt-4">
+                    <span className="text-xs text-[var(--text-muted)]">
+                      Estimated: {rec.time}
+                    </span>
+                    <a
+                      href="#"
+                      className="text-xs font-semibold flex items-center gap-0.5 hover:underline"
+                      style={{ color: details.color }}
+                    >
+                      Start <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between mt-4 border-t border-[rgba(255,255,255,0.05)] pt-4">
-                  <span className="text-xs text-[var(--text-muted)]">
-                    Estimated: {rec.time}
-                  </span>
-                  <a
-                    href="#"
-                    className="text-xs font-semibold flex items-center gap-0.5 hover:underline"
-                    style={{ color: details.color }}
-                  >
-                    Start <ArrowUpRight className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

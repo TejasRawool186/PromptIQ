@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShinyButton } from "@/components/ui/shiny-button";
@@ -59,6 +59,14 @@ const FAQ_ITEMS = [
 
 export default function LandingPage() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    }
+  }, []);
 
   const handleLaunchClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -205,8 +213,17 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-white transition-colors duration-200">FAQ</a>
           </nav>
 
-          <button onClick={handleLaunchClick} className="border-none bg-transparent outline-none">
-            <ShinyButton className="text-xs py-2 px-4">Launch Dashboard</ShinyButton>
+          <button onClick={handleLaunchClick} className="border-none bg-transparent outline-none cursor-pointer">
+            {isLoggedIn ? (
+              <ShinyButton className="text-xs py-2 px-4">Go to Dashboard</ShinyButton>
+            ) : (
+              <div className="flex items-center gap-2 bg-[#ef4444] hover:bg-[#d33c3c] text-[#020202] text-xs font-bold py-2 px-4 rounded-xl transition-all shadow-md shadow-[#ef4444]/20 hover:scale-102">
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.579-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 5.48 1 0 6.48 0 13s5.48 12 12.24 12c7.06 0 11.75-4.97 11.75-11.95 0-.81-.08-1.42-.18-1.765H12.24z"/>
+                </svg>
+                Sign In
+              </div>
+            )}
           </button>
         </div>
       </header>
@@ -231,10 +248,19 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <button onClick={handleLaunchClick} className="w-full sm:w-auto border-none bg-transparent outline-none">
-            <ShinyButton className="w-full sm:w-auto px-8 py-3.5 text-sm shadow-xl">
-              Enter Workspace <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-            </ShinyButton>
+          <button onClick={handleLaunchClick} className="w-full sm:w-auto border-none bg-transparent outline-none cursor-pointer">
+            {isLoggedIn ? (
+              <ShinyButton className="w-full sm:w-auto px-8 py-3.5 text-sm shadow-xl">
+                Enter Workspace <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+              </ShinyButton>
+            ) : (
+              <div className="flex items-center justify-center gap-2.5 bg-[#ef4444] hover:bg-[#d33c3c] text-[#020202] text-sm font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-[#ef4444]/25 hover:scale-102">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" width="24" height="24">
+                  <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.579-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 5.48 1 0 6.48 0 13s5.48 12 12.24 12c7.06 0 11.75-4.97 11.75-11.95 0-.81-.08-1.42-.18-1.765H12.24z"/>
+                </svg>
+                Sign In with Google
+              </div>
+            )}
           </button>
           <a href="#features" className="w-full sm:w-auto">
             <ShinyButton variant="secondary" className="w-full sm:w-auto px-8 py-3.5 text-sm">
@@ -771,7 +797,8 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           {/* Plan 1 */}
-          <GlassCard className="border-white/5 p-6 space-y-6">
+          <GlassCard className="border-white/5 p-6 space-y-6 relative overflow-hidden">
+            <span className="absolute top-2 right-2 px-2.5 py-0.5 rounded-md bg-white/5 text-[var(--text-muted)] text-[8px] font-bold uppercase tracking-wider">Coming Soon</span>
             <div>
               <h4 className="text-sm font-bold text-white">Free Sandbox</h4>
               <p className="text-xs text-[var(--text-muted)] mt-1">For single sandbox developers.</p>
@@ -782,15 +809,16 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> Basic necessity score</li>
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> Dynamic routing logs</li>
             </ul>
-            <button onClick={handleLaunchClick} className="w-full block py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer">
-              Get Started
+            <button disabled className="w-full block py-2.5 rounded-xl border border-white/5 text-xs font-semibold text-[var(--text-muted)] bg-white/5 cursor-not-allowed opacity-50">
+              Coming Soon
             </button>
           </GlassCard>
 
           {/* Plan 2: Featured Plan */}
-          <GlassCard className="border-[#ef4444]/40 bg-[#ef4444]/[0.01] p-7 space-y-6 relative shadow-[0_30px_70px_rgba(239,68,68,0.06)] scale-105">
+          <GlassCard className="border-[#ef4444]/40 bg-[#ef4444]/[0.01] p-7 space-y-6 relative shadow-[0_30px_70px_rgba(239,68,68,0.06)] scale-105 overflow-hidden">
+            <span className="absolute top-2 right-2 px-2.5 py-0.5 rounded-md bg-[#ef4444]/10 text-[#ef4444] text-[8px] font-bold uppercase tracking-wider">Coming Soon</span>
             {/* Spotlight label */}
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#ef4444] text-[#020202] text-[9px] font-bold uppercase tracking-wider">Most Popular</span>
+            <span className="absolute -top-3 left-1/3 -translate-x-1/2 px-3 py-1 rounded-full bg-[#ef4444] text-[#020202] text-[9px] font-bold uppercase tracking-wider">Most Popular</span>
             <div>
               <h4 className="text-base font-bold text-white">Developer Team</h4>
               <p className="text-xs text-[var(--text-muted)] mt-1">For active engineering groups.</p>
@@ -802,15 +830,14 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> Advanced team skill profiling</li>
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> Custom latency threshold config</li>
             </ul>
-            <button onClick={handleLaunchClick} className="w-full block border-none bg-transparent outline-none">
-              <ShinyButton className="w-full py-2.5 text-xs">
-                Launch Workspace
-              </ShinyButton>
+            <button disabled className="w-full block py-2.5 rounded-xl border border-white/5 text-xs font-semibold text-[var(--text-muted)] bg-white/5 cursor-not-allowed opacity-50">
+              Coming Soon
             </button>
           </GlassCard>
 
           {/* Plan 3 */}
-          <GlassCard className="border-white/5 p-6 space-y-6">
+          <GlassCard className="border-white/5 p-6 space-y-6 relative overflow-hidden">
+            <span className="absolute top-2 right-2 px-2.5 py-0.5 rounded-md bg-white/5 text-[var(--text-muted)] text-[8px] font-bold uppercase tracking-wider">Coming Soon</span>
             <div>
               <h4 className="text-sm font-bold text-white">Enterprise</h4>
               <p className="text-xs text-[var(--text-muted)] mt-1">For large enterprise security.</p>
@@ -822,11 +849,9 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> Custom security filters & sanitizing</li>
               <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#ef4444]" /> 24/7 SLA governance support</li>
             </ul>
-            <a href="mailto:support@promptiq.dev" className="block">
-              <button className="w-full py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-xs font-semibold text-white bg-transparent hover:bg-white/[0.02] transition-colors cursor-pointer">
-                Contact Sales
-              </button>
-            </a>
+            <button disabled className="w-full block py-2.5 rounded-xl border border-white/5 text-xs font-semibold text-[var(--text-muted)] bg-white/5 cursor-not-allowed opacity-50">
+              Coming Soon
+            </button>
           </GlassCard>
         </div>
       </section>

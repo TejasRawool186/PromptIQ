@@ -20,7 +20,7 @@ class PromptRecordDb(Base):
     __tablename__ = "prompt_records"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id", onDelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     prompt_text = Column(String, nullable=False)
     response_summary = Column(String, nullable=True)
     category = Column(String, nullable=True)

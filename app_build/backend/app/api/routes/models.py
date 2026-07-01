@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from fastapi import APIRouter, Query, status, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session

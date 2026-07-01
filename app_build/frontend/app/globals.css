@@ -1,0 +1,445 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CSS Custom Properties — PromptIQ Premium Metallic Theme (Red & Black)
+   ============================================ */
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-tertiary: #050505;
+  --surface-glass: rgba(255, 255, 255, 0.02);
+  --surface-glass-hover: rgba(255, 255, 255, 0.05);
+  --border-glass: rgba(255, 255, 255, 0.04);
+  --border-glass-hover: rgba(255, 255, 255, 0.08);
+  --text-primary: #f1f0f5;
+  --text-secondary: #a8a3b8;
+  --text-muted: #6b6480;
+  --accent-purple: #ef4444; /* Red Brand Accent */
+  --accent-cyan: #ef4444;   /* Red Brand Accent */
+  --accent-emerald: #10B981;
+  --accent-rose: #ef4444;
+  --gradient-start: #ef4444;
+  --gradient-end: #b91c1c;
+}
+
+/* ============================================
+   Global Base Styles
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   Scrollbar Styles
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================
+   Glassmorphism Utility Classes
+   ============================================ */
+@layer components {
+  .glass {
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+  }
+
+  .glass-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-hover:hover {
+    background: var(--surface-glass-hover);
+    border-color: var(--border-glass-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1),
+      0 0 0 1px rgba(139, 92, 246, 0.1);
+  }
+
+  .glass-card {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 10, 35, 0.7) 0%,
+      rgba(20, 15, 50, 0.5) 100%
+    );
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(139, 92, 246, 0.25);
+    box-shadow: 0 8px 40px rgba(139, 92, 246, 0.08),
+      0 0 0 1px rgba(139, 92, 246, 0.08);
+  }
+
+  .glass-input {
+    background: rgba(10, 7, 25, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .glass-input:focus {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15),
+      0 0 20px rgba(139, 92, 246, 0.1);
+  }
+
+  .glass-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .glass-btn {
+    background: linear-gradient(135deg, var(--accent-purple), #6d28d9);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .glass-btn:hover::before {
+    opacity: 1;
+  }
+
+  .glass-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  }
+
+  .glass-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gradient border */
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Background mesh gradient */
+  .bg-mesh {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--bg-primary);
+  }
+
+  .bg-mesh::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse 80% 50% at 20% 40%,
+        rgba(239, 68, 68, 0.02) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 20%,
+        rgba(255, 255, 255, 0.01) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 60% at 60% 80%,
+        rgba(239, 68, 68, 0.01) 0%,
+        transparent 70%
+      );
+    animation: meshShift 20s ease-in-out infinite;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(139, 92, 246, 0.05) 0%,
+      rgba(139, 92, 246, 0.12) 50%,
+      rgba(139, 92, 246, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  /* Pulse dot */
+  .pulse-dot {
+    position: relative;
+  }
+
+  .pulse-dot::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    top: -2px;
+    right: -2px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+/* ============================================
+   Keyframe Animations
+   ============================================ */
+@keyframes meshShift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(2%, -1%) scale(1.02);
+  }
+  66% {
+    transform: translate(-1%, 2%) scale(0.98);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes nodeFloat {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(3px, -5px);
+  }
+  50% {
+    transform: translate(-2px, 3px);
+  }
+  75% {
+    transform: translate(4px, 2px);
+  }
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+/* ============================================
+   Chart Overrides
+   ============================================ */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(139, 92, 246, 0.08) !important;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background: rgba(15, 10, 35, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.recharts-tooltip-item {
+  color: var(--text-primary) !important;
+}
+
+/* ============================================
+   Premium Metallic & Glassmorphic Custom Styles
+   ============================================ */
+.metal-card {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.01) 50%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.metal-card:hover {
+  border-color: rgba(239, 68, 68, 0.25);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.9),
+              0 0 30px rgba(239, 68, 68, 0.03),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Cinematic Spotlight / Glows */
+.red-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.white-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Atmospheric Vignette */
+.cinematic-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(2, 2, 2, 0.75) 100%);
+}
+
+/* Thin Faint Metallic Grid */
+.faint-grid {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 55% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Brushed Reflections effect overlay */
+.brushed-metal {
+  position: relative;
+  overflow: hidden;
+}
+
+.brushed-metal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.01) 3px,
+    transparent 4px
+  );
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+/* Shimmer animation keyframes for shiny button */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+  }
+  100% {
+    transform: translateX(150%) skewX(-25deg);
+  }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 3s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+

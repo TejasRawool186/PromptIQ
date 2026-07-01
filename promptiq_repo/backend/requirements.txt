@@ -1,0 +1,7 @@
+fastapi
+cognee==0.1.21
+pydantic-settings
+python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
+mcp

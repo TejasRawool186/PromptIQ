@@ -1,0 +1,31 @@
+# Node dependencies
+node_modules/
+.next/
+out/
+build/
+tsconfig.tsbuildinfo
+
+# Python virtual environment
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+
+# Local environment configuration
+.env
+.env*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database & runtime files
+*.db
+*.sqlite
+cognee_data/
+.agents/
+
+# IDE files
+.vscode/
+.idea/

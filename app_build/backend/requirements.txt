@@ -1,0 +1,12 @@
+fastapi
+cognee==0.1.21
+pydantic-settings
+python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
+mcp
+sqlalchemy
+psycopg2-binary
+asyncpg
+authlib
+httpx

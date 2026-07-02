@@ -26,54 +26,8 @@ import {
 } from "recharts";
 
 // ============================================================
-// Fallback Mock Data
+// Heatmap layout definition
 // ============================================================
-
-const MOCK_COST_OVER_TIME = [
-  { date: "Jun 1", cost: 12.5, savings: 4.2, prompts: 24 },
-  { date: "Jun 3", cost: 15.8, savings: 5.1, prompts: 31 },
-  { date: "Jun 5", cost: 11.2, savings: 6.3, prompts: 28 },
-  { date: "Jun 7", cost: 22.4, savings: 8.7, prompts: 45 },
-  { date: "Jun 9", cost: 18.6, savings: 7.2, prompts: 38 },
-  { date: "Jun 11", cost: 25.1, savings: 12.3, prompts: 52 },
-  { date: "Jun 13", cost: 21.3, savings: 10.8, prompts: 47 },
-  { date: "Jun 15", cost: 28.7, savings: 15.4, prompts: 61 },
-  { date: "Jun 17", cost: 24.5, savings: 13.2, prompts: 55 },
-  { date: "Jun 19", cost: 31.2, savings: 18.6, prompts: 68 },
-  { date: "Jun 21", cost: 29.8, savings: 16.9, prompts: 72 },
-  { date: "Jun 23", cost: 35.4, savings: 22.1, prompts: 84 },
-];
-
-const MOCK_COST_BY_MODEL = [
-  { model: "Claude Opus", cost: 128.45, prompts: 189, avg_cost: 0.068 },
-  { model: "GPT-4o", cost: 98.72, prompts: 245, avg_cost: 0.040 },
-  { model: "GPT-4o-mini", cost: 12.36, prompts: 84, avg_cost: 0.015 },
-  { model: "Gemini Flash", cost: 8.92, prompts: 140, avg_cost: 0.006 },
-  { model: "Ollama Local", cost: 0.0, prompts: 42, avg_cost: 0.0 },
-];
-
-const MOCK_COST_BY_CATEGORY = [
-  { category: "Code Gen", count: 280, percentage: 38, color: "#8B5CF6" },
-  { category: "Debugging", count: 165, percentage: 22, color: "#F43F5E" },
-  { category: "Architecture", count: 98, percentage: 13, color: "#F59E0B" },
-  { category: "Refactoring", count: 82, percentage: 11, color: "#ef4444" },
-  { category: "Documentation", count: 60, percentage: 8, color: "#10B981" },
-];
-
-const MOCK_TOKEN_DATA = [
-  { date: "Jun 1", tokens: 45200 },
-  { date: "Jun 3", tokens: 62800 },
-  { date: "Jun 5", tokens: 51300 },
-  { date: "Jun 7", tokens: 89400 },
-  { date: "Jun 9", tokens: 72100 },
-  { date: "Jun 11", tokens: 98700 },
-  { date: "Jun 13", tokens: 85600 },
-  { date: "Jun 15", tokens: 112400 },
-  { date: "Jun 17", tokens: 95800 },
-  { date: "Jun 19", tokens: 128300 },
-  { date: "Jun 21", tokens: 118900 },
-  { date: "Jun 23", tokens: 145600 },
-];
 
 const HEATMAP_DATA = [
   { hour: "9am", Mon: 8, Tue: 12, Wed: 10, Thu: 14, Fri: 6 },
@@ -374,49 +328,55 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
-            {/* Day headers */}
-            <div className="grid grid-cols-6 gap-2 mb-2 pl-16">
-              {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-xs text-[var(--text-muted)] font-medium"
-                >
-                  {day}
+          {hasData ? (
+            <div className="min-w-[600px]">
+              {/* Day headers */}
+              <div className="grid grid-cols-6 gap-2 mb-2 pl-16">
+                {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
+                  <div
+                    key={day}
+                    className="text-center text-xs text-[var(--text-muted)] font-medium"
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Heatmap rows */}
+              {HEATMAP_DATA.map((row) => (
+                <div key={row.hour} className="grid grid-cols-6 gap-2 mb-2">
+                  <div className="text-xs text-[var(--text-muted)] flex items-center justify-end pr-2 font-medium">
+                    {row.hour}
+                  </div>
+                  {(["Mon", "Tue", "Wed", "Thu", "Fri"] as const).map((day) => {
+                    const val = row[day] as number;
+                    const maxVal = 30;
+                    const intensity = Math.min(val / maxVal, 1);
+                    return (
+                      <div
+                        key={day}
+                        className="h-10 rounded-lg flex items-center justify-center text-xs font-medium transition-all hover:scale-105 cursor-default"
+                        style={{
+                          background: `rgba(139, 92, 246, ${intensity * 0.6 + 0.05})`,
+                          color:
+                            intensity > 0.5
+                              ? "rgba(255,255,255,0.9)"
+                              : "rgba(255,255,255,0.4)",
+                        }}
+                        title={`${day} ${row.hour}: ${val} prompts`}
+                      >
+                        {val}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
-
-            {/* Heatmap rows */}
-            {HEATMAP_DATA.map((row) => (
-              <div key={row.hour} className="grid grid-cols-6 gap-2 mb-2">
-                <div className="text-xs text-[var(--text-muted)] flex items-center justify-end pr-2 font-medium">
-                  {row.hour}
-                </div>
-                {(["Mon", "Tue", "Wed", "Thu", "Fri"] as const).map((day) => {
-                  const val = row[day] as number;
-                  const maxVal = 30;
-                  const intensity = Math.min(val / maxVal, 1);
-                  return (
-                    <div
-                      key={day}
-                      className="h-10 rounded-lg flex items-center justify-center text-xs font-medium transition-all hover:scale-105 cursor-default"
-                      style={{
-                        background: `rgba(139, 92, 246, ${intensity * 0.6 + 0.05})`,
-                        color:
-                          intensity > 0.5
-                            ? "rgba(255,255,255,0.9)"
-                            : "rgba(255,255,255,0.4)",
-                      }}
-                      title={`${day} ${row.hour}: ${val} prompts`}
-                    >
-                      {val}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          ) : (
+            <div className="py-12 text-center text-xs text-[var(--text-muted)]">
+              No prompt activity heatmap data. Log prompts to see activity peaks.
+            </div>
+          )}
         </div>
 
         {/* Legend */}

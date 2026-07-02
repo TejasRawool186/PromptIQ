@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Query, status, Depends
+from fastapi import APIRouter, Query, status, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -33,6 +33,7 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
     description="Aggregate dashboard stats including costs, usage, and Cognee memory health.",
 )
 async def get_dashboard_stats(
+    request: Request,
     timeframe: str = Query("last_30_days", description="Time range for stats"),
     org_id: Optional[str] = Query(None, description="Filter by organization"),
     db: Session = Depends(get_db)
@@ -42,17 +43,21 @@ async def get_dashboard_stats(
     Pulls data from Cognee memory and the PostgreSQL database.
     """
     memory = get_memory_service()
+    user_id = getattr(request.state, "user_id", None)
 
     # Query Cognee for analytics data
     try:
-        analytics_data = await memory.get_analytics_data(timeframe=timeframe, scope=org_id or "all")
+        analytics_data = await memory.get_analytics_data(timeframe=timeframe, scope=user_id or "all")
         raw_results = analytics_data.get("raw_results", [])
     except Exception as exc:
         logger.warning("Cognee analytics query failed: %s", exc)
         raw_results = []
 
-    # Get prompt records from database
-    records = db.query(PromptRecordDb).all()
+    # Get prompt records from database (filtered by requesting user)
+    query = db.query(PromptRecordDb)
+    if user_id:
+        query = query.filter(PromptRecordDb.user_id == user_id)
+    records = query.all()
 
     # Compute stats from database records
     total_prompts = len(records)
@@ -130,12 +135,17 @@ async def get_dashboard_stats(
     description="Detailed cost analytics by model, user, project, and category.",
 )
 async def get_cost_analytics(
+    request: Request,
     period: str = Query("last_30_days", description="Time period"),
     org_id: Optional[str] = Query(None, description="Filter by organization"),
     db: Session = Depends(get_db)
 ) -> APIResponse:
     """Cost breakdown analytics."""
-    records = db.query(PromptRecordDb).all()
+    user_id = getattr(request.state, "user_id", None)
+    query = db.query(PromptRecordDb)
+    if user_id:
+        query = query.filter(PromptRecordDb.user_id == user_id)
+    records = query.all()
 
     # Cost by model
     cost_by_model: Dict[str, float] = {}
@@ -206,11 +216,16 @@ async def get_cost_analytics(
     description="Usage trends over time including prompts per day, category/model distribution.",
 )
 async def get_usage_trends(
+    request: Request,
     period: str = Query("last_30_days", description="Time period"),
     db: Session = Depends(get_db)
 ) -> APIResponse:
     """Usage trend data over time."""
-    records = db.query(PromptRecordDb).all()
+    user_id = getattr(request.state, "user_id", None)
+    query = db.query(PromptRecordDb)
+    if user_id:
+        query = query.filter(PromptRecordDb.user_id == user_id)
+    records = query.all()
 
     # Prompts per day
     day_counts: Dict[str, int] = {}

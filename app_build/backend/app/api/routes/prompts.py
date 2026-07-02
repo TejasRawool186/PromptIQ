@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, status, Depends
+from fastapi import APIRouter, HTTPException, Query, status, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -225,6 +225,7 @@ def _db_record_to_dict(db_record: PromptRecordDb) -> dict:
     description="Retrieve all stored prompt records with optional filtering.",
 )
 async def list_prompts(
+    request: Request,
     user_id: Optional[str] = Query(None, description="Filter by user ID"),
     category: Optional[str] = Query(None, description="Filter by category"),
     limit: int = Query(50, ge=1, le=200, description="Max results"),
@@ -234,9 +235,10 @@ async def list_prompts(
     """List stored prompts with optional filters."""
     query = db.query(PromptRecordDb)
 
-    # Apply filters
-    if user_id:
-        query = query.filter(PromptRecordDb.user_id == user_id)
+    # Filter by user ID (defaulting to requesting user)
+    user_id_filter = user_id or getattr(request.state, "user_id", None)
+    if user_id_filter:
+        query = query.filter(PromptRecordDb.user_id == user_id_filter)
     if category:
         query = query.filter(PromptRecordDb.category == category)
 

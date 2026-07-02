@@ -20,76 +20,19 @@ interface GraphEdge {
 interface MemoryGraphProps {
   width?: number;
   height?: number;
+  prompts?: any[];
 }
 
 const NODE_COLORS: Record<string, string> = {
   developer: "#8B5CF6",
-  skill: "#ef4444",
+  skill: "#06b6d4",
   prompt: "#10B981",
   project: "#F59E0B",
   model: "#F43F5E",
   category: "#EC4899",
 };
 
-const MOCK_NODES: Omit<GraphNode, "x" | "y">[] = [
-  { id: "dev1", label: "Alice Chen", type: "developer", size: 28 },
-  { id: "dev2", label: "Bob Kumar", type: "developer", size: 24 },
-  { id: "sk1", label: "React", type: "skill", size: 18 },
-  { id: "sk2", label: "Python", type: "skill", size: 20 },
-  { id: "sk3", label: "SQL", type: "skill", size: 16 },
-  { id: "sk4", label: "Docker", type: "skill", size: 14 },
-  { id: "sk5", label: "TypeScript", type: "skill", size: 17 },
-  { id: "sk6", label: "AWS", type: "skill", size: 15 },
-  { id: "p1", label: "Debug useState", type: "prompt", size: 12 },
-  { id: "p2", label: "SQL Query Opt", type: "prompt", size: 11 },
-  { id: "p3", label: "Docker Config", type: "prompt", size: 10 },
-  { id: "p4", label: "API Design", type: "prompt", size: 13 },
-  { id: "p5", label: "Unit Tests", type: "prompt", size: 11 },
-  { id: "p6", label: "CI/CD Pipeline", type: "prompt", size: 12 },
-  { id: "pr1", label: "PromptIQ", type: "project", size: 22 },
-  { id: "pr2", label: "DataPipeline", type: "project", size: 18 },
-  { id: "m1", label: "GPT-4o", type: "model", size: 16 },
-  { id: "m2", label: "Claude Opus", type: "model", size: 16 },
-  { id: "m3", label: "Gemini Flash", type: "model", size: 14 },
-  { id: "c1", label: "Debugging", type: "category", size: 15 },
-  { id: "c2", label: "Code Gen", type: "category", size: 15 },
-  { id: "c3", label: "DevOps", type: "category", size: 14 },
-];
-
-const MOCK_EDGES: GraphEdge[] = [
-  { source: "dev1", target: "sk1", label: "has_skill" },
-  { source: "dev1", target: "sk2", label: "has_skill" },
-  { source: "dev1", target: "sk5", label: "has_skill" },
-  { source: "dev2", target: "sk2", label: "has_skill" },
-  { source: "dev2", target: "sk3", label: "has_skill" },
-  { source: "dev2", target: "sk4", label: "has_skill" },
-  { source: "dev2", target: "sk6", label: "has_skill" },
-  { source: "dev1", target: "p1", label: "submitted" },
-  { source: "dev1", target: "p4", label: "submitted" },
-  { source: "dev1", target: "p5", label: "submitted" },
-  { source: "dev2", target: "p2", label: "submitted" },
-  { source: "dev2", target: "p3", label: "submitted" },
-  { source: "dev2", target: "p6", label: "submitted" },
-  { source: "p1", target: "c1", label: "categorized_as" },
-  { source: "p4", target: "c2", label: "categorized_as" },
-  { source: "p3", target: "c3", label: "categorized_as" },
-  { source: "p5", target: "c2", label: "categorized_as" },
-  { source: "p6", target: "c3", label: "categorized_as" },
-  { source: "p2", target: "c1", label: "categorized_as" },
-  { source: "p1", target: "m1", label: "used_model" },
-  { source: "p2", target: "m2", label: "used_model" },
-  { source: "p3", target: "m3", label: "used_model" },
-  { source: "p4", target: "m2", label: "used_model" },
-  { source: "p5", target: "m1", label: "used_model" },
-  { source: "p6", target: "m3", label: "used_model" },
-  { source: "dev1", target: "pr1", label: "works_on" },
-  { source: "dev2", target: "pr1", label: "works_on" },
-  { source: "dev2", target: "pr2", label: "works_on" },
-  { source: "sk1", target: "sk5", label: "related_to" },
-  { source: "p1", target: "p4", label: "similar_to" },
-];
-
-export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
+export function MemoryGraph({ width = 800, height = 500, prompts = [] }: MemoryGraphProps) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [animationPhase, setAnimationPhase] = useState(0);
 
@@ -100,13 +43,56 @@ export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const nodes = useMemo<GraphNode[]>(() => {
+  const { nodes, edges } = useMemo(() => {
+    if (!prompts || prompts.length === 0) {
+      return { nodes: [], edges: [] };
+    }
+
+    const nodeMap = new Map<string, Omit<GraphNode, "x" | "y">>();
+    const edgeList: GraphEdge[] = [];
+
+    prompts.forEach((p) => {
+      const userLabel = p.user_id ? p.user_id.slice(0, 8).toUpperCase() : "DEV";
+      const userId = p.user_id || "default_user";
+      const promptId = p.id;
+      const promptLabel = p.prompt_text.length > 18 ? p.prompt_text.slice(0, 15) + "..." : p.prompt_text;
+      const skillId = p.skill_domain || "unknown_skill";
+      const modelId = p.model_used || "unknown_model";
+      const categoryId = p.category || "unknown_category";
+
+      // Add developer node
+      if (!nodeMap.has(userId)) {
+        nodeMap.set(userId, { id: userId, label: userLabel, type: "developer", size: 24 });
+      }
+      // Add prompt node
+      nodeMap.set(promptId, { id: promptId, label: promptLabel, type: "prompt", size: 13 });
+      
+      // Add skill domain node
+      if (!nodeMap.has(skillId)) {
+        nodeMap.set(skillId, { id: skillId, label: skillId.toUpperCase(), type: "skill", size: 18 });
+      }
+      // Add model node
+      if (!nodeMap.has(modelId)) {
+        nodeMap.set(modelId, { id: modelId, label: modelId, type: "model", size: 16 });
+      }
+      // Add category node
+      if (!nodeMap.has(categoryId)) {
+        nodeMap.set(categoryId, { id: categoryId, label: categoryId.replace(/_/g, " ").toUpperCase(), type: "category", size: 15 });
+      }
+
+      // Add relationships/edges
+      edgeList.push({ source: userId, target: promptId, label: "submitted" });
+      edgeList.push({ source: promptId, target: skillId, label: "requires_skill" });
+      edgeList.push({ source: promptId, target: modelId, label: "used_model" });
+      edgeList.push({ source: promptId, target: categoryId, label: "categorized_as" });
+    });
+
+    const nodeList = Array.from(nodeMap.values());
     const cx = width / 2;
     const cy = height / 2;
 
-    // Position nodes in organic clusters
-    return MOCK_NODES.map((n, i) => {
-      const angle = (i / MOCK_NODES.length) * 2 * Math.PI;
+    const positionedNodes = nodeList.map((n, i) => {
+      const angle = (i / nodeList.length) * 2 * Math.PI;
       let radius: number;
 
       switch (n.type) {
@@ -114,35 +100,33 @@ export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
           radius = 60;
           break;
         case "skill":
-          radius = 150;
+          radius = 130;
           break;
         case "prompt":
-          radius = 200;
-          break;
-        case "project":
-          radius = 100;
+          radius = 210;
           break;
         case "model":
-          radius = 170;
+          radius = 160;
           break;
         case "category":
-          radius = 140;
+          radius = 125;
           break;
         default:
-          radius = 160;
+          radius = 150;
       }
 
-      // Add some organic offsets
-      const offsetX = Math.sin(i * 2.7) * 30;
-      const offsetY = Math.cos(i * 1.9) * 25;
+      const offsetX = Math.sin(i * 2.7) * 25;
+      const offsetY = Math.cos(i * 1.9) * 20;
 
       return {
         ...n,
         x: cx + Math.cos(angle) * radius + offsetX,
         y: cy + Math.sin(angle) * radius + offsetY,
-      };
+      } as GraphNode;
     });
-  }, [width, height]);
+
+    return { nodes: positionedNodes, edges: edgeList };
+  }, [prompts, width, height]);
 
   const nodeMap = useMemo(() => {
     const map: Record<string, GraphNode> = {};
@@ -154,12 +138,20 @@ export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
     if (!hoveredNode) return new Set<string>();
     const connected = new Set<string>();
     connected.add(hoveredNode);
-    MOCK_EDGES.forEach((e) => {
+    edges.forEach((e) => {
       if (e.source === hoveredNode) connected.add(e.target);
       if (e.target === hoveredNode) connected.add(e.source);
     });
     return connected;
-  }, [hoveredNode]);
+  }, [hoveredNode, edges]);
+
+  if (nodes.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-center text-xs text-[var(--text-muted)]">
+        Knowledge graph is empty. Log prompts to see semantic links build dynamically.
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl" style={{ height }}>
@@ -191,7 +183,7 @@ export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
         className="relative z-10"
       >
         {/* Edges */}
-        {MOCK_EDGES.map((edge, i) => {
+        {edges.map((edge, i) => {
           const source = nodeMap[edge.source];
           const target = nodeMap[edge.target];
           if (!source || !target) return null;
@@ -220,7 +212,7 @@ export function MemoryGraph({ width = 800, height = 500 }: MemoryGraphProps) {
         })}
 
         {/* Animated particles along edges */}
-        {MOCK_EDGES.slice(0, 8).map((edge, i) => {
+        {edges.slice(0, 8).map((edge, i) => {
           const source = nodeMap[edge.source];
           const target = nodeMap[edge.target];
           if (!source || !target) return null;

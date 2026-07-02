@@ -32,6 +32,7 @@ export default function MemoryExplorerPage() {
   const [refineMsg, setRefineMsg] = useState<string | null>(null);
 
   const [stats, setStats] = useState<any>(null);
+  const [promptsList, setPromptsList] = useState<any[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -39,8 +40,10 @@ export default function MemoryExplorerPage() {
       try {
         const { api } = await import("@/lib/api");
         const res = await api.getDashboardStats();
+        const prompts = await api.listPrompts({ limit: 15 });
         if (active) {
           setStats(res);
+          setPromptsList(prompts);
         }
       } catch (err) {
         console.error("Failed to load dashboard stats in memory page:", err);
@@ -212,7 +215,7 @@ export default function MemoryExplorerPage() {
 
           <div className="flex-1 w-full h-full pt-12">
             {hasData ? (
-              <MemoryGraph />
+              <MemoryGraph prompts={promptsList} />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-center text-xs text-[var(--text-muted)] gap-2">
                 <Network className="w-8 h-8 opacity-20 animate-pulse" />

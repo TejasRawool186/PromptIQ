@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
 
     # --- Cognee ---
+    cognee_api_key: str = ""
     cognee_llm_api_key: str = "sk-placeholder"
     cognee_llm_provider: str = "openai"
     cognee_llm_model: str = "gpt-4o-mini"

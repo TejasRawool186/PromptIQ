@@ -52,6 +52,10 @@ class CogneeMemoryService:
             elif settings.cognee_llm_provider == "openai":
                 os.environ["OPENAI_API_KEY"] = settings.cognee_llm_api_key
 
+            # Populate Cognee Cloud API Key if provided
+            if settings.cognee_api_key:
+                os.environ["COGNEE_API_KEY"] = settings.cognee_api_key
+
             # Configure the LLM provider Cognee will use for embeddings & cognify
             cognee.config.set_llm_config(
                 {

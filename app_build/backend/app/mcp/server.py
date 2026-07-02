@@ -221,29 +221,42 @@ async def get_skill_profile(
 
 @mcp.tool()
 async def get_analytics(
-    org_id: str = "default_org"
+    user_id: str = "default_user"
 ) -> str:
     """
-    Get organizational prompt analytics and AI spend metrics.
+    Get prompt analytics and AI spend metrics for a developer.
     """
     try:
-        # Aggregate mock analytics for simple IDE visualization
-        result = {
-            "org_id": org_id,
-            "total_prompts": 716,
-            "total_cost_usd": 258.45,
-            "estimated_savings_usd": 78.50,
-            "average_necessity_score": 48.6,
-            "top_categories": {
-                "code_generation": 280,
-                "debugging": 185,
-                "refactoring": 115,
-                "documentation": 74,
-                "architecture": 42,
-                "learning": 20
+        from app.db.session import SessionLocal
+        from app.db.models import PromptRecordDb
+        
+        db = SessionLocal()
+        try:
+            records = db.query(PromptRecordDb).filter(PromptRecordDb.user_id == user_id).all()
+            
+            total_prompts = len(records)
+            total_cost = sum(r.estimated_cost for r in records)
+            avg_necessity = (
+                sum(r.necessity_score for r in records if r.necessity_score is not None)
+                / max(sum(1 for r in records if r.necessity_score is not None), 1)
+            ) if records else 0.0
+            
+            category_counts: Dict[str, int] = {}
+            for r in records:
+                cat = r.category or "unknown"
+                category_counts[cat] = category_counts.get(cat, 0) + 1
+                
+            result = {
+                "user_id": user_id,
+                "total_prompts": total_prompts,
+                "total_cost_usd": round(total_cost, 4),
+                "estimated_savings_usd": round(total_cost * 0.4, 4),
+                "average_necessity_score": round(avg_necessity, 1),
+                "top_categories": category_counts
             }
-        }
-        return json.dumps(result, indent=2)
+            return json.dumps(result, indent=2)
+        finally:
+            db.close()
     except Exception as e:
         logger.error("Error in get_analytics tool: %s", e)
         return json.dumps({"error": str(e), "status": "failed"})
